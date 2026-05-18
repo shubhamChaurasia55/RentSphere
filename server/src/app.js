@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.routes.js";
+import propertyRoutes from "./routes/property.routes.js";
 
 const app = express();
 
@@ -13,6 +14,8 @@ app.use(morgan("dev"))
 app.use(cors())
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/property", propertyRoutes);
 
 
 
