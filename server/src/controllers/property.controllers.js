@@ -1,29 +1,75 @@
 import propertyModel from "../models/property.model.js";
+import cloudinary from "../config/cloudinary.js";
+import fs from "fs";
+
 
 
 export const createProperty = async (req, res) => {
-    const { title, description, location, city, rent, bedrooms, bathrooms, furnished, amenities, images, coordinates, status } = req.body;
+    try {
 
-    const property = await propertyModel.create({
-        title,
-        description,
-        location,
-        city,
-        rent,
-        bedrooms,
-        bathrooms,
-        furnished,
-        amenities,
-        images,
-        coordinates,
-        status,
-        owner: req.user._id
-    });
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Please upload at least one image"
+            });
+        }
 
-    return res.status(201).json({
-        message: "Property added successfully",
-        property
-    });
+        const { title, description, location, city, rent, bedrooms, bathrooms, furnished, amenities, coordinates, status } = req.body;
+
+        if (!title || !city || !rent) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields"
+            });
+        }
+
+        const imageUrls = [];
+
+        for (const file of req.files) {
+            try {
+                const uploadResult = await cloudinary.uploader.upload(file.path);
+                imageUrls.push(uploadResult.secure_url);
+                fs.unlinkSync(file.path);
+            } catch (error) {
+                console.error("Error uploading file to Cloudinary:", error);
+                throw new Error("Failed to upload image to Cloudinary");
+            }
+        }
+
+        const property = await propertyModel.create({
+            title,
+            description,
+            location,
+            city,
+            rent,
+            bedrooms,
+            bathrooms,
+            furnished,
+            amenities,
+            images: imageUrls,
+            coordinates,
+            status,
+            owner: req.user._id
+        });
+
+
+
+        return res.status(201).json({
+            success:true,
+            message: "Property added successfully",
+            property
+        });
+
+    } catch (error) {
+        
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+
 }
 
 export const getMyProperties = async (req, res) => {
@@ -147,11 +193,11 @@ export const getAllProperties = async (req, res) => {
 }
 
 export const getPropertyById = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
 
     const property = await propertyModel.findById(id);
 
-    if(!property){
+    if (!property) {
         return res.status(404).json({
             message: "Property not found"
         });
@@ -165,26 +211,26 @@ export const getPropertyById = async (req, res) => {
 
 
 export const searchProperties = async (req, res) => {
-    const {city, minRent, maxRent, bedrooms, bathrooms, furnished, keyword, page, limit, sort} = req.query;
+    const { city, minRent, maxRent, bedrooms, bathrooms, furnished, keyword, page, limit, sort } = req.query;
 
     const query = {};
 
-    if(city){
+    if (city) {
         query.city = city;
     }
 
-    if(minRent || maxRent){
+    if (minRent || maxRent) {
         query.rent = {};
 
-        if(minRent) query.rent.$gte = Number(minRent);
-        if(maxRent) query.rent.$lte = Number(maxRent);
+        if (minRent) query.rent.$gte = Number(minRent);
+        if (maxRent) query.rent.$lte = Number(maxRent);
     }
 
-    if(bedrooms){
+    if (bedrooms) {
         query.bedrooms = Number(bedrooms);
     }
 
-    if(bathrooms){
+    if (bathrooms) {
         query.bathrooms = Number(bathrooms);
     }
 
@@ -192,7 +238,7 @@ export const searchProperties = async (req, res) => {
         query.furnished = furnished === "true";
     }
 
-    if(keyword){
+    if (keyword) {
         query.$or = [
             {
                 title: {
@@ -235,7 +281,7 @@ export const searchProperties = async (req, res) => {
         .populate("owner", "_id name email")
         .lean();
 
-    
+
     if (!properties.length) {
         return res.status(404).json({
             message: "No properties found",

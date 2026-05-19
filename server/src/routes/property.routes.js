@@ -8,10 +8,11 @@ import { updateProperty } from "../controllers/property.controllers.js";
 import { deleteProperty } from "../controllers/property.controllers.js";
 import { getAllProperties } from "../controllers/property.controllers.js";
 import { getPropertyById } from "../controllers/property.controllers.js";
+import upload from "../middlewares/upload.middleware.js";
 
 const propertyRouter = Router();
 
-propertyRouter.post("/", protect, authorizeRole("landlord"), createProperty);
+propertyRouter.post("/", protect, authorizeRole("landlord"), upload.array("images", 5), createProperty);
 
 propertyRouter.get("/my-properties", protect, authorizeRole("landlord"), getMyProperties);
 
