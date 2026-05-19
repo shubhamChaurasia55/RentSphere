@@ -162,3 +162,102 @@ export const getPropertyById = async (req, res) => {
         property
     });
 }
+
+
+export const searchProperties = async (req, res) => {
+    const {city, minRent, maxRent, bedrooms, bathrooms, furnished, keyword, page, limit, sort} = req.query;
+
+    const query = {};
+
+    if(city){
+        query.city = city;
+    }
+
+    if(minRent || maxRent){
+        query.rent = {};
+
+        if(minRent) query.rent.$gte = Number(minRent);
+        if(maxRent) query.rent.$lte = Number(maxRent);
+    }
+
+    if(bedrooms){
+        query.bedrooms = Number(bedrooms);
+    }
+
+    if(bathrooms){
+        query.bathrooms = Number(bathrooms);
+    }
+
+    if (furnished) {
+        query.furnished = furnished === "true";
+    }
+
+    if(keyword){
+        query.$or = [
+            {
+                title: {
+                    $regex: keyword,
+                    $options: "i"
+                }
+            },
+            {
+                description: {
+                    $regex: keyword,
+                    $options: "i"
+                }
+            },
+            {
+                location: {
+                    $regex: keyword,
+                    $options: "i"
+                }
+            },
+            {
+                city: {
+                    $regex: keyword,
+                    $options: "i"
+                }
+            }
+        ]
+    }
+
+    const currentPage = Number(page) || 1;
+    const perPage = Number(limit) || 10;
+    const skip = (currentPage - 1) * perPage;
+
+    const sortBy = sort || "-createdAt";
+
+    const properties = await propertyModel
+        .find(query)
+        .sort(sortBy)
+        .skip(skip)
+        .limit(perPage)
+        .populate("owner", "_id name email")
+        .lean();
+
+    
+    if (!properties.length) {
+        return res.status(404).json({
+            message: "No properties found",
+            count: 0,
+            properties: []
+        });
+    }
+
+    const totalProperties = await propertyModel.countDocuments(query);
+
+    const totalPages = Math.ceil(totalProperties / perPage);
+
+    return res.status(200).json({
+        success: true,
+        message: "Properties fetched successfully",
+        count: properties.length,
+        properties,
+        pagination: {
+            totalProperties,
+            totalPages,
+            currentPage,
+            perPage
+        }
+    });
+}
