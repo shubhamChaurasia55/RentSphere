@@ -19,6 +19,12 @@ const userSchema = new mongoose.Schema({
         enum: ["tenant", "landlord", "admin"],
         default: "tenant"
     },
+    favorites: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Property"
+        }
+    ],
     profileImage: {
         type: String,
         default: ""
