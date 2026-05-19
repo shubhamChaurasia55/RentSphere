@@ -3,6 +3,12 @@ import { hashPassword, comparePassword } from "../utils/password.utils.js";
 import { generateToken } from "../utils/jwt.utils.js";
 
 export const registerUser = async (req, res) =>{
+    if(!req.body){
+        return res.status(400).json({
+            message: "Request body is empty. Send JSON with Content-Type: application/json"
+        })
+    }
+
     const {name, email, password, role} = req.body;
 
     const isAllreadyRegistered = await userModel.findOne({email})
