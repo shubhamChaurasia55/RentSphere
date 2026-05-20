@@ -61,6 +61,16 @@ const propertySchema = new mongoose.Schema(
          type: String,
          enum: ["available", "booked"],
          default: "available"
+      },
+
+      averageRating: {
+         type: Number,
+         default: 0
+      },
+
+      totalReviews: {
+         type: Number,
+         default: 0
       }
 
    },
