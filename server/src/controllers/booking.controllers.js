@@ -17,8 +17,8 @@ export const requestBooking = async (req, res) => {
         tenant: req.user._id,
         landlord: property.owner,
         status: "pending",
-        message: req.body.message,
-        moveInDate: req.body.moveInDate
+        message: req.body?.message,
+        moveInDate: req.body?.moveInDate
     });
 
     return res.status(201).json({
