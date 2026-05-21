@@ -11,6 +11,7 @@ import Login from '../pages/Login'
 import Register from '../pages/Register'
 import NotFound from '../pages/NotFound'
 import ProtectedRoute from '../features/auth/ProtectedRoute'
+import PropertyDetails from '../pages/PropertyDetails'
 
 export const AppRoutes = () => {
     return (
@@ -21,12 +22,13 @@ export const AppRoutes = () => {
                 <Route path='/' element={<Home/>} />
                 <Route path='/login' element={<Login/>} />
                 <Route path='/register' element={<Register/>} />
+                <Route
+                    path="/property/:id"
+                    element={<PropertyDetails />}
+                />
             </Route>
 
-            <Route
-                path="/property/:id"
-                element={<PropertyDetails />}
-            />
+
 
             {/* protected routes */}
             <Route path="/landlord/dashboard"
