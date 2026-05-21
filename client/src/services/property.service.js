@@ -1,14 +1,29 @@
 import api from "../api/axios";
 
-export const getProperties = async () => {
+export const getProperties = async (params) => {
 
-    const response = await api.get("/property");
+    const response = await api.get(
+
+        "/property/search",
+
+        {
+            params
+        }
+
+    );
 
     return response.data;
 
 };
 
 export const getPropertyById = async (id) => {
-    const response = await api.get(`/property/${id}`)
+
+    const response = await api.get(
+
+        `/property/${id}`
+
+    );
+
     return response.data;
-}
+
+};
