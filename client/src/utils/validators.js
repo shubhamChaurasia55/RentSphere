@@ -27,3 +27,51 @@ export const registerSchema = z.object({
 
 });
 
+export const propertySchema = z.object({
+
+    title: z
+        .string()
+        .min(3, "Title is required"),
+
+    description: z
+        .string()
+        .min(10, "Description is required"),
+
+    location: z
+        .string()
+        .min(2, "Location is required"),
+
+    city: z
+        .string()
+        .min(2, "City is required"),
+
+    rent: z
+        .string()
+        .min(1, "Rent is required"),
+
+    bedrooms: z
+        .string()
+        .min(1, "Bedrooms required"),
+
+    bathrooms: z
+        .string()
+        .min(1, "Bathrooms required"),
+
+    furnished: z
+        .boolean()
+        .optional(),
+
+    status: z.enum([
+
+        "available",
+
+        "booked"
+
+    ]),
+
+    amenities: z
+        .string()
+        .optional()
+
+});
+

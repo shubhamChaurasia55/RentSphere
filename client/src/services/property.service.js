@@ -38,6 +38,20 @@ export const getMyProperties = async () => {
 
 };
 
+export const createProperty = async (formData) => {
+
+    const response = await api.post(
+
+        "/property",
+
+        formData
+
+    );
+
+    return response.data;
+
+};
+
 export const deleteProperty = async (id) => {
 
     const response = await api.delete(
