@@ -1,86 +1,108 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { useSearchParams } from 'react-router-dom'
+
 import { getProperties } from "../services/property.service";
 
 import PropertyGrid from "../components/property/PropertyGrid";
+import SearchBar from "../components/search/SearchBar";
+import FilterSidebar from "../components/search/FilterSidebar";
 
 const Home = () => {
 
-    const {
+  const [searchParams, setSearchParams] = useSearchParams();
 
-        data,
+  const queryParams = Object.fromEntries(
 
-        isLoading,
+    [...searchParams]
 
-        error
+  );
 
-    } = useQuery({
 
-        queryKey: ["properties"],
+  const {
 
-        queryFn: getProperties
+    data,
 
-    });
+    isLoading,
 
-    if (isLoading) {
+    error
 
-        return (
+  } = useQuery({
 
-            <div className="p-10">
+    queryKey: ["properties", queryParams],
 
-                Loading properties...
+    queryFn: () => getProperties(queryParams)
 
-            </div>
+  });
 
-        );
-
-    }
-
-    if (error) {
-
-        return (
-
-            <div className="p-10">
-
-                Failed to load properties
-
-            </div>
-
-        );
-
-    }
-
-    if (!data?.properties?.length) {
-
-        return (
-
-            <div className="p-10">
-
-                No properties found
-
-            </div>
-
-        );
-
-    }
+  if (isLoading) {
 
     return (
 
-        <div className="max-w-7xl mx-auto px-4 py-10">
+      <div className="p-10">
 
-            <h1 className="text-4xl font-bold mb-8">
+        Loading properties...
 
-                Explore Properties
+      </div>
 
-            </h1>
+    );
 
-            <PropertyGrid
-                properties={data.properties}
-            />
+  }
+
+  if (error) {
+
+    return (
+
+      <div className="p-10">
+
+        Failed to load properties
+
+      </div>
+
+    );
+
+  }
+
+  if (!data?.properties?.length) {
+
+    return (
+
+      <div className="p-10">
+
+        No properties found
+
+      </div>
+
+    );
+
+  }
+
+  return (
+
+    <div className="max-w-7xl mx-auto px-4 py-10">
+
+      <div className="grid grid-cols-12 gap-8">
+
+        <div className="col-span-3">
+
+          <FilterSidebar />
 
         </div>
 
-    );
+        <div className="col-span-9 flex flex-col gap-6">
+
+          <SearchBar />
+
+          <PropertyGrid
+            properties={data?.properties || []}
+          />
+
+        </div>
+
+      </div>
+    </div>
+
+  );
 
 };
 
