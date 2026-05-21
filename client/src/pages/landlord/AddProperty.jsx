@@ -1,4 +1,4 @@
-const LandlordDashboard = () => {
+const AddProperty = () => {
 
     return (
 
@@ -6,7 +6,7 @@ const LandlordDashboard = () => {
 
             <h1 className="text-3xl font-bold">
 
-                Landlord Dashboard
+                Add Property
 
             </h1>
 
@@ -16,4 +16,4 @@ const LandlordDashboard = () => {
 
 };
 
-export default LandlordDashboard;
+export default AddProperty;

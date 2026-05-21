@@ -1,22 +1,29 @@
-import { Outlet } from "react-router-dom"
+import { Outlet } from "react-router-dom";
+
+import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 
 const DashboardLayout = () => {
+
     return (
-        <div className="flex">
-            <aside>
-                Sidebar
-            </aside>
 
-            <main>
+        <div className="min-h-screen grid grid-cols-12">
+
+            <div className="col-span-2 border-r">
+
+                <DashboardSidebar />
+
+            </div>
+
+            <div className="col-span-10 p-6">
+
                 <Outlet />
-            </main>
 
-            <footer>
-                Footer
-            </footer>
-            
+            </div>
+
         </div>
-    )
-}
 
-export default DashboardLayout
+    );
+
+};
+
+export default DashboardLayout;

@@ -1,4 +1,4 @@
-import {Routes, Route} from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 
 import MainLayout from '../layouts/MainLayout'
 import DashboardLayout from '../layouts/DashboardLayout'
@@ -13,15 +13,18 @@ import NotFound from '../pages/NotFound'
 import ProtectedRoute from '../features/auth/ProtectedRoute'
 import PropertyDetails from '../pages/PropertyDetails'
 
+import MyProperties from "../pages/landlord/MyProperties";
+import AddProperty from "../pages/landlord/AddProperty";
+
 export const AppRoutes = () => {
     return (
         <Routes>
-            
+
             {/* public routes */}
-            <Route element={<MainLayout/>} >
-                <Route path='/' element={<Home/>} />
-                <Route path='/login' element={<Login/>} />
-                <Route path='/register' element={<Register/>} />
+            <Route element={<MainLayout />} >
+                <Route path='/' element={<Home />} />
+                <Route path='/login' element={<Login />} />
+                <Route path='/register' element={<Register />} />
                 <Route
                     path="/property/:id"
                     element={<PropertyDetails />}
@@ -31,23 +34,51 @@ export const AppRoutes = () => {
 
 
             {/* protected routes */}
-            <Route path="/landlord/dashboard"
-             element={
-                <ProtectedRoute allowedRoles={["landlord"]}>
-                    <LandlordDashboard />
-                </ProtectedRoute>
-             }
-            />
+            <Route
+
+                path="/landlord"
+
+                element={
+
+                    <ProtectedRoute
+                        allowedRoles={["landlord"]}
+                    >
+
+                        <DashboardLayout />
+
+                    </ProtectedRoute>
+
+                }
+
+            >
+
+                <Route
+                    path="dashboard"
+                    element={<LandlordDashboard />}
+                />
+
+                <Route
+                    path="properties"
+                    element={<MyProperties />}
+                />
+
+                <Route
+                    path="add-property"
+                    element={<AddProperty />}
+                />
+
+            </Route>
+
             <Route path="/tenant/dashboard"
-             element={
-                <ProtectedRoute allowedRoles={["tenant"]}>
-                    <TenantDashboard />
-                </ProtectedRoute>
-             }
+                element={
+                    <ProtectedRoute allowedRoles={["tenant"]}>
+                        <TenantDashboard />
+                    </ProtectedRoute>
+                }
             />
 
             {/* not found route */}
-            <Route path='*' element={<NotFound/>} />
+            <Route path='*' element={<NotFound />} />
 
         </Routes>
     );
