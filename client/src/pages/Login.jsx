@@ -1,26 +1,55 @@
+import { useNavigate } from "react-router-dom";
+
+import { useForm } from "react-hook-form";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { loginSchema } from "../utils/validators";
+
+import Input from "../components/common/Input";
+import Button from "../components/common/Button";
+
 import { loginUser } from "../services/auth.service";
 
 import useAuthStore from "../features/auth/authStore";
 
 const Login = () => {
 
-  const {login} = useAuthStore();
+  const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const { login } = useAuthStore();
+
+  const {
+
+    register,
+
+    handleSubmit,
+
+    formState: { errors, isSubmitting }
+
+  } = useForm({
+
+    resolver: zodResolver(loginSchema)
+
+  });
+
+  const onSubmit = async (formData) => {
 
     try {
 
-      const data = await loginUser({
+      const data = await loginUser(formData);
 
-        email: "test@gmail.com",
+      login(data.user);
 
-        password: "123456"
+      if (data.user.role === "landlord") {
 
-      });
+        navigate("/landlord/dashboard");
 
-      console.log(data);
+      } else {
 
-      login(data)
+        navigate("/tenant/dashboard");
+
+      }
 
     } catch (error) {
 
@@ -32,11 +61,57 @@ const Login = () => {
 
   return (
 
-    <button onClick={handleLogin}>
+    <div className="min-h-screen flex items-center justify-center">
 
-      Test Login
+      <form
 
-    </button>
+        onSubmit={handleSubmit(onSubmit)}
+
+        className="w-full max-w-md border rounded-2xl p-8 flex flex-col gap-5"
+
+      >
+
+        <h1 className="text-3xl font-bold">
+
+          Login
+
+        </h1>
+
+        <Input
+
+          label="Email"
+
+          type="email"
+
+          placeholder="Enter email"
+
+          error={errors.email?.message}
+
+          {...register("email")}
+
+        />
+
+        <Input
+
+          label="Password"
+
+          type="password"
+
+          placeholder="Enter password"
+
+          error={errors.password?.message}
+
+          {...register("password")}
+
+        />
+
+        <Button loading={isSubmitting}>
+          Login
+        </Button>
+
+      </form>
+
+    </div>
 
   );
 
