@@ -1,10 +1,13 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getProperties } from '../services/property.service'
+import useAuthStore from '../features/auth/authStore'
 
 const Home = () => {
 
-  const {data, isLoading, error} = useQuery({
+  const { user, isAuthenticated } = useAuthStore();
+
+  const { data, isLoading, error } = useQuery({
     queryKey: ["properties"],
     queryFn: getProperties
   })
@@ -14,9 +17,16 @@ const Home = () => {
   if (error) return <div>Error loading properties</div>
 
   console.log(data)
-    
+
   return (
     <div>
+      <h1>Home Page</h1>
+      {
+        isAuthenticated
+          ? <h2>user name: {user?.name}</h2>
+          : <h2>Not Logged In</h2>
+      }
+
       <h1>Properties</h1>
       {
         data?.properties?.map((property) => (

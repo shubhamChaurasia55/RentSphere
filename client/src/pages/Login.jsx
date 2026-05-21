@@ -1,6 +1,10 @@
 import { loginUser } from "../services/auth.service";
 
+import useAuthStore from "../features/auth/authStore";
+
 const Login = () => {
+
+  const {login} = useAuthStore();
 
   const handleLogin = async () => {
 
@@ -15,6 +19,8 @@ const Login = () => {
       });
 
       console.log(data);
+
+      login(data)
 
     } catch (error) {
 

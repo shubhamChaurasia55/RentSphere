@@ -31,3 +31,13 @@ export const logoutUser = async () => {
     return response.data;
 
 };
+
+export const getCurrentUser = async () => {
+
+    const response = await api.get(
+        "/auth/get-me"
+    );
+
+    return response.data;
+
+};
