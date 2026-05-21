@@ -27,3 +27,23 @@ export const getPropertyById = async (id) => {
     return response.data;
 
 };
+
+export const getMyProperties = async () => {
+
+    const response = await api.get(
+        "/property/my-properties"
+    );
+
+    return response.data;
+
+};
+
+export const deleteProperty = async (id) => {
+
+    const response = await api.delete(
+        `/property/${id}`
+    );
+
+    return response.data;
+
+};
