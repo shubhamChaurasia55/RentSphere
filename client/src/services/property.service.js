@@ -7,3 +7,8 @@ export const getProperties = async () => {
     return response.data;
 
 };
+
+export const getPropertyById = async (id) => {
+    const response = await api.get(`/property/${id}`)
+    return response.data;
+}

@@ -23,6 +23,11 @@ export const AppRoutes = () => {
                 <Route path='/register' element={<Register/>} />
             </Route>
 
+            <Route
+                path="/property/:id"
+                element={<PropertyDetails />}
+            />
+
             {/* protected routes */}
             <Route path="/landlord/dashboard"
              element={
