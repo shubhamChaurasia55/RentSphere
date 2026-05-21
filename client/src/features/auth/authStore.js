@@ -4,7 +4,7 @@ import { getCurrentUser } from "../../services/auth.service";
 const useAuthStore = create((set) => ({
     user: null,
     isAuthenticated: false,
-    loading: false,
+    loading: true,
 
     login: (userData) => set({
         user: userData,
