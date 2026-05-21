@@ -16,7 +16,7 @@ propertyRouter.post("/", protect, authorizeRole("landlord"), upload.array("image
 
 propertyRouter.get("/my-properties", protect, authorizeRole("landlord"), getMyProperties);
 
-propertyRouter.put("/:id", protect, authorizeRole("landlord"), updateProperty);
+propertyRouter.put("/:id", protect, authorizeRole("landlord"), upload.array("images", 5), updateProperty);
 
 propertyRouter.delete("/:id", protect, authorizeRole("landlord"), deleteProperty);
 

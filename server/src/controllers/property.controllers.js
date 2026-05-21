@@ -90,52 +90,171 @@ export const updateProperty = async (req, res) => {
 
         const { id } = req.params;
 
-        const property = await propertyModel.findById(id);
+        const property =
+
+            await propertyModel.findById(id);
 
         // Check property exists
         if (!property) {
+
             return res.status(404).json({
+
                 success: false,
+
                 message: "Property not found"
+
             });
+
         }
 
         // Check ownership
-        if (property.owner.toString() !== req.user._id.toString()) {
+        if (
+
+            property.owner.toString()
+
+            !==
+
+            req.user._id.toString()
+
+        ) {
 
             return res.status(403).json({
+
                 success: false,
+
                 message: "Unauthorized"
+
             });
 
         }
 
-        // Update property
-        const updatedProperty = await propertyModel.findByIdAndUpdate(
-            id,
-            req.body,
-            {
-                new: true,
-                runValidators: true
+        const {
+
+            title,
+            description,
+            location,
+            city,
+            rent,
+            bedrooms,
+            bathrooms,
+            furnished,
+            status
+
+        } = req.body;
+
+        // Handle amenities
+        let amenities = req.body.amenities;
+
+        if (!Array.isArray(amenities)) {
+
+            amenities = amenities
+
+                ? [amenities]
+
+                : [];
+
+        }
+
+        // Handle images
+        let imageUrls = property.images;
+
+        if (req.files && req.files.length > 0) {
+
+            imageUrls = [];
+
+            for (const file of req.files) {
+
+                const uploadResult =
+
+                    await cloudinary.uploader.upload(
+
+                        file.path
+
+                    );
+
+                imageUrls.push(
+
+                    uploadResult.secure_url
+
+                );
+
+                fs.unlinkSync(file.path);
+
             }
-        );
+
+        }
+
+        const updatedProperty =
+
+            await propertyModel.findByIdAndUpdate(
+
+                id,
+
+                {
+
+                    title,
+                    description,
+                    location,
+                    city,
+
+                    rent: Number(rent),
+
+                    bedrooms: Number(bedrooms),
+
+                    bathrooms: Number(bathrooms),
+
+                    furnished:
+
+                        furnished === "true",
+
+                    amenities,
+
+                    images: imageUrls,
+
+                    status
+
+                },
+
+                {
+
+                    new: true,
+
+                    runValidators: true
+
+                }
+
+            );
 
         return res.status(200).json({
+
             success: true,
-            message: "Property updated successfully",
+
+            message:
+
+                "Property updated successfully",
+
             property: updatedProperty
+
         });
 
     } catch (error) {
 
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    console.log(error);
 
-    }
+    return res.status(500).json({
+
+        success: false,
+
+        message: error.message,
+
+        error
+
+    });
+
+}
 
 };
+
 
 export const deleteProperty = async (req, res) => {
 

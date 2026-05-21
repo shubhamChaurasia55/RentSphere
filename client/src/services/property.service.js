@@ -61,3 +61,23 @@ export const deleteProperty = async (id) => {
     return response.data;
 
 };
+
+export const updateProperty = async ({
+
+    id,
+
+    formData
+
+}) => {
+
+    const response = await api.put(
+
+        `/property/${id}`,
+
+        formData
+
+    );
+
+    return response.data;
+
+};

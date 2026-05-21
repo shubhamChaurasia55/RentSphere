@@ -15,6 +15,7 @@ import PropertyDetails from '../pages/PropertyDetails'
 
 import MyProperties from "../pages/landlord/MyProperties";
 import AddProperty from "../pages/landlord/AddProperty";
+import EditProperty from "../pages/landlord/EditProperty";
 
 export const AppRoutes = () => {
     return (
@@ -65,6 +66,11 @@ export const AppRoutes = () => {
                 <Route
                     path="add-property"
                     element={<AddProperty />}
+                />
+
+                <Route
+                    path="edit-property/:id"
+                    element={<EditProperty />}
                 />
 
             </Route>
