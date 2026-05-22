@@ -27,7 +27,7 @@ app.use("/api/property", propertyRoutes);
 
 app.use("/api/booking", bookingRoutes);
 
-app.use("/api/favorites", favoriteRoutes);
+app.use("/api/favorite", favoriteRoutes);
 
 app.use("/api/review", reviewRoutes);
 

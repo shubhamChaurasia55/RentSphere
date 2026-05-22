@@ -13,6 +13,8 @@ import { createBooking } from "../services/booking.service";
 
 import { addReview, getReviews } from "../services/review.service";
 
+import { addToFavorites, removeFromFavorites } from "../services/favorite.service";
+
 
 const PropertyDetails = () => {
 
@@ -21,6 +23,8 @@ const PropertyDetails = () => {
     const [rating, setRating] = useState(5);
 
     const [comment, setComment] = useState("");
+
+    const [isFavorite, setIsFavorite] = useState(false);
 
     const queryClient = useQueryClient();
 
@@ -113,6 +117,42 @@ const PropertyDetails = () => {
                 error?.response?.data?.message ||
 
                 "Failed to add review"
+
+            );
+
+        }
+
+    });
+
+    const favoriteMutation = useMutation({
+
+        mutationFn: () => {
+
+            if (isFavorite) {
+
+                return removeFromFavorites(id);
+
+            }
+
+            return addToFavorites(id);
+
+        },
+
+        onSuccess: (data) => {
+
+            toast.success(data.message);
+
+            setIsFavorite(!isFavorite);
+
+        },
+
+        onError: (error) => {
+
+            toast.error(
+
+                error?.response?.data?.message ||
+
+                "Action failed"
 
             );
 
@@ -237,6 +277,30 @@ const PropertyDetails = () => {
                         ? "Sending..."
 
                         : "Request Booking"
+
+                }
+
+            </button>
+
+            <button
+
+                className="border px-6 py-3 rounded-xl"
+
+                onClick={() =>
+
+                    favoriteMutation.mutate()
+
+                }
+
+            >
+
+                {
+
+                    isFavorite
+
+                        ? "Remove Favorite"
+
+                        : "Save Property"
 
                 }
 

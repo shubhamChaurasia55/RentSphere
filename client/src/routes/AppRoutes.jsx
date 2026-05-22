@@ -22,6 +22,8 @@ import TenantLayout from "../layouts/TenantLayout";
 
 import MyBookings from "../pages/tenant/MyBookings";
 
+import Favorites from "../pages/tenant/Favorites";
+
 export const AppRoutes = () => {
     return (
         <Routes>
@@ -118,6 +120,14 @@ export const AppRoutes = () => {
                     path="bookings"
 
                     element={<MyBookings />}
+
+                />
+
+                <Route
+
+                    path="favorites"
+
+                    element={<Favorites />}
 
                 />
 
