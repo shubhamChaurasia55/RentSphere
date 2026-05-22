@@ -43,12 +43,12 @@ export const getMyBookings = async (req, res) => {
 export const getBookingRequests = async (req, res) => {
     const bookingRequests = await bookingModel.find({
         landlord: req.user._id
-    }).populate("property", "_id title images").populate("tenant", "_id name email");
+    }).populate("property").populate("tenant");
 
     return res.status(200).json({
         message: "Booking requests fetched successfully",
         count: bookingRequests.length,
-        requests: bookingRequests
+        bookings: bookingRequests
     });
 }
 

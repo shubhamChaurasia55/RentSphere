@@ -16,6 +16,7 @@ import PropertyDetails from '../pages/PropertyDetails'
 import MyProperties from "../pages/landlord/MyProperties";
 import AddProperty from "../pages/landlord/AddProperty";
 import EditProperty from "../pages/landlord/EditProperty";
+import BookingRequests from "../pages/landlord/BookingRequests";
 
 import TenantLayout from "../layouts/TenantLayout";
 
@@ -75,6 +76,13 @@ export const AppRoutes = () => {
                 <Route
                     path="edit-property/:id"
                     element={<EditProperty />}
+                />
+                <Route
+
+                    path="booking-requests"
+
+                    element={<BookingRequests />}
+
                 />
 
             </Route>
