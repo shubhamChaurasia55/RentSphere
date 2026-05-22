@@ -1,6 +1,7 @@
 import AppRoutes from "./routes/AppRoutes";
 import { useEffect } from "react";
 import useAuthStore from "./features/auth/authStore";
+import {Toaster} from "react-hot-toast";
 
 const App = () => {
 
@@ -10,7 +11,12 @@ const App = () => {
     fetchCurrentUser();
   }, []);
 
-    return <AppRoutes />;
+    return (
+        <>
+          <Toaster /> 
+          <AppRoutes />
+        </>
+    );
 
 };
 

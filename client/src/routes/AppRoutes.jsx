@@ -17,6 +17,10 @@ import MyProperties from "../pages/landlord/MyProperties";
 import AddProperty from "../pages/landlord/AddProperty";
 import EditProperty from "../pages/landlord/EditProperty";
 
+import TenantLayout from "../layouts/TenantLayout";
+
+import MyBookings from "../pages/tenant/MyBookings";
+
 export const AppRoutes = () => {
     return (
         <Routes>
@@ -75,13 +79,41 @@ export const AppRoutes = () => {
 
             </Route>
 
-            <Route path="/tenant/dashboard"
+            <Route
+
+                path="/tenant"
+
                 element={
-                    <ProtectedRoute allowedRoles={["tenant"]}>
-                        <TenantDashboard />
+
+                    <ProtectedRoute
+                        allowedRoles={["tenant"]}
+                    >
+
+                        <TenantLayout />
+
                     </ProtectedRoute>
+
                 }
-            />
+
+            >
+
+                <Route
+
+                    path="dashboard"
+
+                    element={<TenantDashboard />}
+
+                />
+
+                <Route
+
+                    path="bookings"
+
+                    element={<MyBookings />}
+
+                />
+
+            </Route>
 
             {/* not found route */}
             <Route path='*' element={<NotFound />} />

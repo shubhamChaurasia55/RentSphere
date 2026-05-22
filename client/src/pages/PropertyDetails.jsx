@@ -1,8 +1,26 @@
 import { useParams } from "react-router-dom";
 
-import { useQuery } from "@tanstack/react-query";
+import {
 
-import { getPropertyById } from "../services/property.service";
+    useMutation,
+
+    useQuery
+
+} from "@tanstack/react-query";
+
+import toast from "react-hot-toast";
+
+import {
+
+    getPropertyById
+
+} from "../services/property.service";
+
+import {
+
+    createBooking
+
+} from "../services/booking.service";
 
 const PropertyDetails = () => {
 
@@ -24,6 +42,34 @@ const PropertyDetails = () => {
 
     });
 
+    const bookingMutation = useMutation({
+
+        mutationFn: () => createBooking(id),
+
+        onSuccess: () => {
+
+            toast.success(
+
+                "Booking request sent"
+
+            );
+
+        },
+
+        onError: (error) => {
+
+            toast.error(
+
+                error?.response?.data?.message ||
+
+                "Booking failed"
+
+            );
+
+        }
+
+    });
+
     if (isLoading) {
 
         return <div>Loading...</div>;
@@ -36,35 +82,40 @@ const PropertyDetails = () => {
 
     }
 
-    const property = data.property;
+    const property = data?.property;
 
     return (
 
-        <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="max-w-7xl mx-auto p-10 flex flex-col gap-8">
 
             <div className="grid grid-cols-2 gap-4">
 
                 {
 
-                    property.images.map((image, index) => (
+                    property.images?.map(
 
-                        <img
+                        (image, index) => (
 
-                            key={index}
+                            <img
 
-                            src={image}
+                                key={index}
 
-                            alt={property.title}
+                                src={image}
 
-                            className="w-full h-80 object-cover rounded-xl"
+                                alt={property.title}
 
-                        />
+                                className="w-full h-80 object-cover rounded-xl"
 
-                    ))
+                            />
+
+                        )
+
+                    )
 
                 }
 
             </div>
+
             <div className="flex flex-col gap-4">
 
                 <h1 className="text-4xl font-bold">
@@ -73,9 +124,13 @@ const PropertyDetails = () => {
 
                 </h1>
 
-                <p className="text-gray-500">
+                <p>
 
-                    {property.location}, {property.city}
+                    {property.location},
+
+                    {" "}
+
+                    {property.city}
 
                 </p>
 
@@ -85,23 +140,7 @@ const PropertyDetails = () => {
 
                 </p>
 
-                <div className="flex gap-6">
-
-                    <span>{property.bedrooms} Beds</span>
-
-                    <span>{property.bathrooms} Baths</span>
-
-                    <span>
-
-                        {property.furnished
-                            ? "Furnished"
-                            : "Unfurnished"}
-
-                    </span>
-
-                </div>
-
-                <p className="text-gray-700">
+                <p>
 
                     {property.description}
 
@@ -109,45 +148,31 @@ const PropertyDetails = () => {
 
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <button
 
-                {
+                className="bg-black text-white px-6 py-3 rounded-xl w-fit"
 
-                    property.amenities.map((item, index) => (
+                onClick={() =>
 
-                        <span
-
-                            key={index}
-
-                            className="border px-4 py-2 rounded-full"
-
-                        >
-
-                            {item}
-
-                        </span>
-
-                    ))
+                    bookingMutation.mutate()
 
                 }
 
-            </div>
+                disabled={bookingMutation.isPending}
 
-            <button className="bg-black text-white px-6 py-3 rounded-xl">
+            >
 
-                Request Booking
+                {
+
+                    bookingMutation.isPending
+
+                        ? "Sending..."
+
+                        : "Request Booking"
+
+                }
 
             </button>
-
-            <div>
-
-                <h2 className="text-2xl font-bold">
-
-                    Reviews
-
-                </h2>
-
-            </div>
 
         </div>
 

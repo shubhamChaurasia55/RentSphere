@@ -31,7 +31,7 @@ export const requestBooking = async (req, res) => {
 export const getMyBookings = async (req, res) => {
     const myBookings = await bookingModel.find({
         tenant: req.user._id
-    }).populate("property", "_id title images");
+    }).populate("property");
 
     return res.status(200).json({
         message: "My bookings fetched successfully",
