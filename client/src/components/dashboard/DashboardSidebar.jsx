@@ -29,6 +29,11 @@ const DashboardSidebar = () => {
                 Add Property
 
             </NavLink>
+            <NavLink to="/landlord/booking-requests">
+
+                Booking Requests
+
+            </NavLink>
 
         </div>
 
