@@ -16,11 +16,11 @@ import {
 
 } from "../../services/favorite.service";
 
-// import {
+import {
 
-//     getNotifications
+    getNotifications
 
-// } from "../../services/notification.service";
+} from "../../services/notification.service";
 
 import {
 
@@ -60,17 +60,17 @@ const TenantDashboard = () => {
 
     });
 
-    // const {
+    const {
 
-    //     data: notificationsData
+        data: notificationsData
 
-    // } = useQuery({
+    } = useQuery({
 
-    //     queryKey: ["notifications"],
+        queryKey: ["notifications"],
 
-    //     queryFn: getNotifications
+        queryFn: getNotifications
 
-    // });
+    });
 
     return (
 
@@ -154,11 +154,11 @@ const TenantDashboard = () => {
 
                     <p className="text-4xl font-bold mt-3">
 
-                        {/* {
+                        {
 
                             notificationsData?.notifications?.length || 0
 
-                        } */}
+                        }
 
                     </p>
 
