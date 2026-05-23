@@ -8,6 +8,7 @@ import propertyRoutes from "./routes/property.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
 import favoriteRoutes from "./routes/favorite.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express();
 
@@ -30,6 +31,8 @@ app.use("/api/booking", bookingRoutes);
 app.use("/api/favorite", favoriteRoutes);
 
 app.use("/api/review", reviewRoutes);
+
+app.use("/api/notification", notificationRoutes);
 
 
 

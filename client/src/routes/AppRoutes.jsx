@@ -24,6 +24,8 @@ import MyBookings from "../pages/tenant/MyBookings";
 
 import Favorites from "../pages/tenant/Favorites";
 
+import Notifications from "../pages/Notifications";
+
 export const AppRoutes = () => {
     return (
         <Routes>
@@ -129,6 +131,11 @@ export const AppRoutes = () => {
 
                     element={<Favorites />}
 
+                />
+
+                <Route
+                    path="notifications"
+                    element={<Notifications />}
                 />
 
             </Route>

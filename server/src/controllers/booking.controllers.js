@@ -1,12 +1,14 @@
 import bookingModel from "../models/booking.model.js";
 import propertyModel from "../models/property.model.js";
+import notificationModel from "../models/notification.model.js";
+
 
 export const requestBooking = async (req, res) => {
-    const {propertyId} = req.params;
+    const { propertyId } = req.params;
 
     const property = await propertyModel.findById(propertyId);
 
-    if(!property){
+    if (!property) {
         return res.status(404).json({
             message: "Property not found"
         });
@@ -53,25 +55,25 @@ export const getBookingRequests = async (req, res) => {
 }
 
 export const acceptBooking = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
 
     const booking = await bookingModel.findById(id);
 
-    if(!booking){
+    if (!booking) {
         return res.status(404).json({
             message: "Booking not found"
         });
     }
 
     // Only the landlord who owns this booking can accept it
-    if(booking.landlord.toString() !== req.user._id.toString()){
+    if (booking.landlord.toString() !== req.user._id.toString()) {
         return res.status(403).json({
             message: "Unauthorized - You can only manage your own bookings"
         });
     }
 
     // Only pending bookings can be accepted
-    if(booking.status !== "pending"){
+    if (booking.status !== "pending") {
         return res.status(400).json({
             message: `Booking already ${booking.status}`
         });
@@ -80,6 +82,18 @@ export const acceptBooking = async (req, res) => {
     booking.status = "accepted";
     await booking.save();
 
+    await notificationModel.create({
+
+        user: booking.tenant,
+
+        title: "Booking Accepted",
+
+        message:
+
+            "Your booking request was accepted"
+
+    });
+
     return res.status(200).json({
         message: "Booking accepted successfully",
         booking
@@ -87,25 +101,25 @@ export const acceptBooking = async (req, res) => {
 }
 
 export const rejectBooking = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
 
     const booking = await bookingModel.findById(id);
 
-    if(!booking){
+    if (!booking) {
         return res.status(404).json({
             message: "Booking not found"
         });
     }
 
     // Only the landlord who owns this booking can reject it
-    if(booking.landlord.toString() !== req.user._id.toString()){
+    if (booking.landlord.toString() !== req.user._id.toString()) {
         return res.status(403).json({
             message: "Unauthorized - You can only manage your own bookings"
         });
     }
 
     // Only pending bookings can be rejected
-    if(booking.status !== "pending"){
+    if (booking.status !== "pending") {
         return res.status(400).json({
             message: `Booking already ${booking.status}`
         });
@@ -113,6 +127,18 @@ export const rejectBooking = async (req, res) => {
 
     booking.status = "rejected";
     await booking.save();
+
+    await notificationModel.create({
+
+        user: booking.tenant,
+
+        title: "Booking Rejected",
+
+        message:
+
+            "Your booking request was rejected"
+
+    });
 
     return res.status(200).json({
         message: "Booking rejected successfully",
