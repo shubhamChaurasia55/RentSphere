@@ -47,7 +47,7 @@ const Login = () => {
 
       } else {
 
-        navigate("/tenant/dashboard");
+        navigate("/");
 
       }
 
