@@ -12,6 +12,8 @@ const useAuthStore = create((set) => ({
         loading: false,
     }),
 
+    setUser: (user) => set({ user }),
+
     logout: () => set({
         user: null,
         isAuthenticated: false,

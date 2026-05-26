@@ -37,11 +37,7 @@ export const registerUser = async (req, res) =>{
     
     res.status(201).json({
         message: "User registered successfully",
-        user: {
-            name: user.name,
-            email: user.email,
-            role: user.role
-        },
+        user,
         token
     })
 
@@ -77,11 +73,7 @@ export const loginUser = async (req, res) => {
 
     res.status(200).json({
         message: "User logged in successfully",
-        user: {
-            name: user.name,
-            email: user.email,
-            role: user.role
-        },
+        user,
         token
     })
 }
@@ -97,11 +89,7 @@ export const getMe = async (req, res) => {
 
     res.status(200).json({
         message: "User data fetched successfully",
-        user:{
-            name: user.name,
-            email: user.email,
-            role: user.role
-        }
+        user
     })
 }
 

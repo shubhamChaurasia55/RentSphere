@@ -1,5 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 
+import PublicRoute from '../features/auth/PublicRoute'
+
 import MainLayout from '../layouts/MainLayout'
 import DashboardLayout from '../layouts/DashboardLayout'
 
@@ -32,13 +34,46 @@ export const AppRoutes = () => {
 
             {/* public routes */}
             <Route element={<MainLayout />} >
-                <Route path='/' element={<Home />} />
-                <Route path='/login' element={<Login />} />
-                <Route path='/register' element={<Register />} />
+
+                <Route
+                    path='/'
+                    element={<Home />}
+                />
+
+                <Route
+                    path='/login'
+                    element={
+                        <PublicRoute>
+                            <Login />
+                        </PublicRoute>
+                    }
+                />
+
+                <Route
+                    path='/register'
+                    element={
+                        <PublicRoute>
+                            <Register />
+                        </PublicRoute>
+                    }
+                />
+
                 <Route
                     path="/property/:id"
                     element={<PropertyDetails />}
                 />
+
+                <Route
+                    path="/favorites"
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={["tenant"]}
+                        >
+                            <Favorites />
+                        </ProtectedRoute>
+                    }
+                />
+
             </Route>
 
 
@@ -122,14 +157,6 @@ export const AppRoutes = () => {
                     path="bookings"
 
                     element={<MyBookings />}
-
-                />
-
-                <Route
-
-                    path="favorites"
-
-                    element={<Favorites />}
 
                 />
 
