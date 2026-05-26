@@ -8,6 +8,10 @@ import PropertyGrid from "../components/property/PropertyGrid";
 import SearchBar from "../components/search/SearchBar";
 import FilterSidebar from "../components/search/FilterSidebar";
 
+
+import Hero from "../components/common/HeroSection";
+import PropertySearchBar from "../components/common/PropertySearchBar";
+
 const Home = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,6 +82,9 @@ const Home = () => {
   }
 
   return (
+    <>
+    <Hero />
+    <PropertySearchBar />
 
     <div className="max-w-7xl mx-auto px-4 py-10">
 
@@ -100,7 +107,10 @@ const Home = () => {
         </div>
 
       </div>
+
+
     </div>
+    </>
 
   );
 

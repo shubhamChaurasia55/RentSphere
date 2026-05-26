@@ -72,7 +72,7 @@ const SearchBar = () => {
 
                 }
 
-                className="border rounded-xl px-4 py-3 w-full"
+                className="border border-slate-400 rounded-xl px-4 py-3 w-full bg-white text-black"
 
             />
 
@@ -80,9 +80,9 @@ const SearchBar = () => {
 
                 onClick={handleSearch}
 
-                className="bg-black text-white px-6 rounded-xl"
+                className="border border-slate-400 rounded-xl px-6 py-3 bg-white text-black"
 
-            >
+            >   
 
                 Search
 
