@@ -330,99 +330,106 @@ export const getPropertyById = async (req, res) => {
 
 
 export const searchProperties = async (req, res) => {
-    const { city, minRent, maxRent, bedrooms, bathrooms, furnished, keyword, page, limit, sort } = req.query;
+    try {
+        // 1. Added 'category' to the destructured query parameters
+        const { 
+            city, minRent, maxRent, bedrooms, bathrooms, 
+            furnished, keyword, category, page, limit, sort 
+        } = req.query;
 
-    const query = {};
+        const query = {};
 
-    if (city) {
-        query.city = city;
-    }
+        // --- FILTERS ---
 
-    if (minRent || maxRent) {
-        query.rent = {};
+        if (city) {
+            // Using regex for case-insensitive exact matching (e.g., "bangalore" matches "Bangalore")
+            query.city = { $regex: new RegExp(`^${city}$`, "i") };
+        }
 
-        if (minRent) query.rent.$gte = Number(minRent);
-        if (maxRent) query.rent.$lte = Number(maxRent);
-    }
+        // 2. Added Category Filter Logic
+        if (category && category !== "All") {
+            // Allows the frontend category slider to filter properties
+            query.category = { $regex: new RegExp(`^${category}$`, "i") };
+        }
 
-    if (bedrooms) {
-        query.bedrooms = Number(bedrooms);
-    }
+        if (minRent || maxRent) {
+            query.rent = {};
+            if (minRent) query.rent.$gte = Number(minRent);
+            if (maxRent) query.rent.$lte = Number(maxRent);
+        }
 
-    if (bathrooms) {
-        query.bathrooms = Number(bathrooms);
-    }
+        if (bedrooms) {
+            query.bedrooms = Number(bedrooms);
+        }
 
-    if (furnished) {
-        query.furnished = furnished === "true";
-    }
+        if (bathrooms) {
+            query.bathrooms = Number(bathrooms);
+        }
 
-    if (keyword) {
-        query.$or = [
-            {
-                title: {
-                    $regex: keyword,
-                    $options: "i"
-                }
-            },
-            {
-                description: {
-                    $regex: keyword,
-                    $options: "i"
-                }
-            },
-            {
-                location: {
-                    $regex: keyword,
-                    $options: "i"
-                }
-            },
-            {
-                city: {
-                    $regex: keyword,
-                    $options: "i"
-                }
+        if (furnished) {
+            query.furnished = furnished === "true";
+        }
+
+        if (keyword) {
+            query.$or = [
+                { title: { $regex: keyword, $options: "i" } },
+                { description: { $regex: keyword, $options: "i" } },
+                { location: { $regex: keyword, $options: "i" } },
+                { city: { $regex: keyword, $options: "i" } }
+            ];
+        }
+
+        // --- PAGINATION & SORTING ---
+        const currentPage = Number(page) || 1;
+        const perPage = Number(limit) || 10;
+        const skip = (currentPage - 1) * perPage;
+
+        const sortBy = sort || "-createdAt";
+
+        // --- DATABASE QUERIES ---
+        const properties = await propertyModel
+            .find(query)
+            .sort(sortBy)
+            .skip(skip)
+            .limit(perPage)
+            .populate("owner", "_id name email profileImage") // Added profileImage for frontend UI
+            .lean();
+
+        // 3. Instead of returning 404 when empty, it's better API practice 
+        // to return 200 with an empty array. The frontend handles the "No properties found" UI.
+        if (!properties.length) {
+            return res.status(200).json({
+                success: true,
+                message: "No properties found matching your criteria",
+                count: 0,
+                properties: [],
+                pagination: { totalProperties: 0, totalPages: 0, currentPage, perPage }
+            });
+        }
+
+        const totalProperties = await propertyModel.countDocuments(query);
+        const totalPages = Math.ceil(totalProperties / perPage);
+
+        return res.status(200).json({
+            success: true,
+            message: "Properties fetched successfully",
+            count: properties.length,
+            properties,
+            pagination: {
+                totalProperties,
+                totalPages,
+                currentPage,
+                perPage
             }
-        ]
-    }
+        });
 
-    const currentPage = Number(page) || 1;
-    const perPage = Number(limit) || 10;
-    const skip = (currentPage - 1) * perPage;
-
-    const sortBy = sort || "-createdAt";
-
-    const properties = await propertyModel
-        .find(query)
-        .sort(sortBy)
-        .skip(skip)
-        .limit(perPage)
-        .populate("owner", "_id name email")
-        .lean();
-
-
-    if (!properties.length) {
-        return res.status(404).json({
-            message: "No properties found",
-            count: 0,
-            properties: []
+    } catch (error) {
+        // 4. Added error handling to prevent server crashes
+        console.error("Error in searchProperties:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An error occurred while fetching properties",
+            error: error.message
         });
     }
-
-    const totalProperties = await propertyModel.countDocuments(query);
-
-    const totalPages = Math.ceil(totalProperties / perPage);
-
-    return res.status(200).json({
-        success: true,
-        message: "Properties fetched successfully",
-        count: properties.length,
-        properties,
-        pagination: {
-            totalProperties,
-            totalPages,
-            currentPage,
-            perPage
-        }
-    });
-}
+};
