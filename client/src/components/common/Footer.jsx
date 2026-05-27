@@ -18,7 +18,7 @@ export default function Footer() {
       id="contact"
       className="mt-16 border-t border-slate-200 bg-gradient-to-b from-white to-slate-50"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
         
         {/* TOP SECTION */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
