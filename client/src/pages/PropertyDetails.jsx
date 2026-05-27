@@ -4,42 +4,48 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import {
   Heart, MapPin, BedDouble, Bath, Sofa, Star, CalendarDays,
-  Share, ChevronLeft, ChevronRight, Maximize, Home, Wind, 
-  WashingMachine, Utensils, Refrigerator, Zap, ShieldCheck, 
-  Car, ArrowUpDown, Dog, CheckCircle2, ChevronDown
+  Share, Maximize, Home, Wind, ShieldCheck, Car, CheckCircle2,
+  ChevronRight, MessageSquare
 } from "lucide-react";
 import useAuthStore from "../features/auth/authStore";
 
-// Replace these imports with your actual service paths
+// Services (Ensure these match your actual paths)
 import { getPropertyById } from "../services/property.service";
 import { createBooking } from "../services/booking.service";
-import { addReview, getReviews } from "../services/review.service";
 import { addToFavorites, removeFromFavorites } from "../services/favorite.service";
+import { addReview, getReviews } from "../services/review.service";
 
 import NearbyProperties from "../components/property/NearbyProperties";
 
 const PropertyDetails = () => {
   const { id } = useParams();
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
   const queryClient = useQueryClient();
   const { user, setUser } = useAuthStore();
+  
+  // Interactive Gallery State
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Review State
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+
   const [isFavorite, setIsFavorite] = useState(user?.favorites?.includes(id));
 
-  /* --- QUERIES & MUTATIONS (Kept from your original code) --- */
+  /* --- QUERIES --- */
   const { data, isLoading, error } = useQuery({
     queryKey: ["property", id],
     queryFn: () => getPropertyById(id),
   });
 
-  const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
+  const { data: reviewsData } = useQuery({
     queryKey: ["reviews", id],
     queryFn: () => getReviews(id),
   });
 
+  /* --- MUTATIONS --- */
   const bookingMutation = useMutation({
     mutationFn: () => createBooking(id),
-    onSuccess: () => toast.success("Booking request sent"),
+    onSuccess: () => toast.success("Booking request sent successfully!"),
     onError: (error) => toast.error(error?.response?.data?.message || "Booking failed"),
   });
 
@@ -49,15 +55,15 @@ const PropertyDetails = () => {
       toast.success(resData.message || "Favorites updated");
       setIsFavorite(!isFavorite);
       const newFavorites = isFavorite
-        ? user.favorites.filter((fav) => fav !== property._id)
-        : [...(user.favorites || []), property._id];
+        ? user.favorites.filter((fav) => fav !== id)
+        : [...(user.favorites || []), id];
       setUser({ ...user, favorites: newFavorites });
     },
     onError: (error) => toast.error(error?.response?.data?.message || "Action failed"),
   });
 
   const reviewMutation = useMutation({
-    mutationFn: addReview,
+    mutationFn: (reviewData) => addReview({ propertyId: id, reviewData }),
     onSuccess: () => {
       toast.success("Review added successfully");
       setRating(5);
@@ -67,288 +73,257 @@ const PropertyDetails = () => {
     onError: (error) => toast.error(error?.response?.data?.message || "Failed to add review"),
   });
 
-  const handleReviewSubmit = () => {
-    reviewMutation.mutate({ propertyId: id, reviewData: { rating, comment } });
-  };
-
   /* --- RENDER STATES --- */
   if (isLoading) {
-    return <div className="h-screen flex items-center justify-center text-xl font-semibold">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
+
   if (error) {
-    return <div className="h-screen flex items-center justify-center text-xl font-semibold text-red-500">Error loading property</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl font-semibold text-red-500">
+        Property not found or an error occurred.
+      </div>
+    );
   }
 
   const property = data?.property || {};
+  const images = property.images?.length > 0 ? property.images : Array(5).fill("/api/placeholder/800/500");
+  const reviews = reviewsData?.reviews || [];
 
   return (
-    <div className="bg-white min-h-screen pb-16">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <div className="bg-white min-h-screen pb-20 pt-6">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* BREADCRUMBS & TOP ACTIONS */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-          <div className="text-sm font-medium text-gray-500 flex items-center flex-wrap gap-2">
-            <span className="hover:text-indigo-600 cursor-pointer">Home</span> 
-            <ChevronRight className="w-4 h-4" />
-            <span className="hover:text-indigo-600 cursor-pointer">Properties</span> 
-            <ChevronRight className="w-4 h-4" />
-            <span className="hover:text-indigo-600 cursor-pointer">{property.city || "Bangalore"}</span> 
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-gray-900">{property.title || "Modern 2BHK Apartment"}</span>
-          </div>
-          
-          <div className="flex items-center gap-4 text-sm font-medium">
-            <button className="flex items-center gap-2 text-gray-700 hover:text-indigo-600 transition">
-              <Share className="w-4 h-4" /> Share
-            </button>
-            <button 
-              onClick={() => favoriteMutation.mutate()}
-              className="flex items-center gap-2 text-gray-700 hover:text-red-500 transition"
-            >
-              <Heart className={`w-4 h-4 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} /> 
-              {isFavorite ? "Saved" : "Save"}
-            </button>
+        {/* ================= HEADER & TITLE ================= */}
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-2 leading-tight">
+                {property.title}
+              </h1>
+              <div className="flex items-center gap-4 text-slate-600 text-[15px] font-medium">
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 fill-slate-900 text-slate-900" />
+                  <span className="font-semibold text-slate-900">{property.averageRating || "New"}</span> 
+                  <span className="underline cursor-pointer">({reviews.length} reviews)</span>
+                </span>
+                <span className="text-slate-400">•</span>
+                <span className="flex items-center gap-1 underline cursor-pointer">
+                  {property.location}, {property.city}
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 shrink-0">
+              <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-sm font-medium transition">
+                <Share className="w-4 h-4" /> Share
+              </button>
+              <button 
+                onClick={() => favoriteMutation.mutate()}
+                disabled={favoriteMutation.isPending}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-700 text-sm font-medium transition"
+              >
+                <Heart className={`w-4 h-4 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : ""}`} /> 
+                {isFavorite ? "Saved" : "Save"}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* MAIN CONTENT GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
+        {/* ================= MAIN LAYOUT (Left: Content, Right: Booking Card) ================= */}
+        <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
           
-          {/* LEFT COLUMN */}
-          <div className="flex flex-col gap-8">
+          {/* ================= LEFT COLUMN (Gallery + Details + Reviews) ================= */}
+          <div className="flex-1 w-full lg:w-[60%]">
             
-            {/* IMAGE GALLERY */}
-            <div className="flex flex-col gap-3">
-              {/* Main Image */}
-              <div className="relative h-[400px] sm:h-[500px] rounded-2xl overflow-hidden group">
-                <span className="absolute top-4 left-4 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-md z-10">
-                  FEATURED
+            {/* INTERACTIVE GALLERY */}
+            <div className="mb-8 flex flex-col gap-2">
+              <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] rounded-2xl overflow-hidden bg-slate-100 shadow-sm border border-slate-200">
+                <span className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-slate-900 text-[10px] font-bold tracking-widest px-2.5 py-1 rounded-md z-10 uppercase shadow-sm">
+                  {property.status || "Listed"}
                 </span>
                 <img 
-                  src={property.images?.[0] || "/api/placeholder/800/500"} 
-                  alt={property.title} 
-                  className="w-full h-full object-cover"
+                  src={images[activeImageIndex]} 
+                  alt={`Property view ${activeImageIndex + 1}`} 
+                  className="w-full h-full object-cover transition-opacity duration-300"
                 />
-                <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-md hover:bg-white transition opacity-0 group-hover:opacity-100">
-                  <ChevronLeft className="w-5 h-5 text-gray-700" />
-                </button>
-                <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-md hover:bg-white transition opacity-0 group-hover:opacity-100">
-                  <ChevronRight className="w-5 h-5 text-gray-700" />
-                </button>
               </div>
               
-              {/* Thumbnails */}
-              <div className="grid grid-cols-5 gap-3">
-                {[1, 2, 3, 4, 5].map((index) => (
-                  <div key={index} className="relative h-20 sm:h-24 rounded-xl overflow-hidden cursor-pointer">
-                    <img 
-                      src={property.images?.[index] || `/api/placeholder/150/100`} 
-                      alt={`Thumbnail ${index}`} 
-                      className="w-full h-full object-cover hover:opacity-90 transition"
-                    />
-                    {index === 5 && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-medium text-sm sm:text-base">
-                        +18 Photos
-                      </div>
-                    )}
-                  </div>
+              <div className="grid grid-cols-5 gap-2">
+                {images.slice(0, 5).map((img, index) => (
+                  <button 
+                    key={index} 
+                    onClick={() => setActiveImageIndex(index)}
+                    className={`relative aspect-[4/3] rounded-lg overflow-hidden transition-all duration-200 ${
+                      activeImageIndex === index 
+                        ? "opacity-100 ring-2 ring-slate-900 ring-offset-1" 
+                        : "opacity-50 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                  </button>
                 ))}
               </div>
             </div>
 
-            {/* QUICK STATS BAR */}
-            <div className="flex flex-wrap items-center justify-between gap-4 py-6 border-b border-gray-100 text-gray-700">
-              <div className="flex items-center gap-3"><BedDouble className="w-5 h-5" /> <span className="font-medium">{property.bedrooms || 2} Bedrooms</span></div>
-              <div className="flex items-center gap-3"><Bath className="w-5 h-5" /> <span className="font-medium">{property.bathrooms || 2} Bathrooms</span></div>
-              <div className="flex items-center gap-3"><Maximize className="w-5 h-5" /> <span className="font-medium">{property.area || 1200} sq ft</span></div>
-              <div className="flex items-center gap-3"><Home className="w-5 h-5" /> <span className="font-medium">Apartment</span></div>
-              <div className="flex items-center gap-3"><Sofa className="w-5 h-5" /> <span className="font-medium">{property.furnished ? "Furnished" : "Unfurnished"}</span></div>
-            </div>
-
-            {/* ABOUT */}
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">About this property</h3>
-              <p className="text-gray-600 leading-relaxed">
-                {property.description || "Experience comfortable living in this beautiful apartment located in the heart of the city. This fully furnished apartment comes with modern amenities and a great view of the city. Perfect for families, working professionals, or anyone looking for a cozy and convenient home."}
-              </p>
-              <button className="text-indigo-600 font-medium mt-2 hover:underline flex items-center gap-1">
-                Show more <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* AMENITIES */}
-            <div className="pt-6 border-t border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Amenities</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-y-6 gap-x-4">
-                <div className="flex items-center gap-3 text-gray-700"><Wind className="w-5 h-5 text-gray-400" /> WiFi</div>
-                <div className="flex items-center gap-3 text-gray-700"><Wind className="w-5 h-5 text-gray-400" /> AC</div>
-                <div className="flex items-center gap-3 text-gray-700"><WashingMachine className="w-5 h-5 text-gray-400" /> Washing Machine</div>
-                <div className="flex items-center gap-3 text-gray-700"><Utensils className="w-5 h-5 text-gray-400" /> Kitchen</div>
-                <div className="flex items-center gap-3 text-gray-700"><Refrigerator className="w-5 h-5 text-gray-400" /> Refrigerator</div>
-                <div className="flex items-center gap-3 text-gray-700"><Zap className="w-5 h-5 text-gray-400" /> Power Backup</div>
-                <div className="flex items-center gap-3 text-gray-700"><ShieldCheck className="w-5 h-5 text-gray-400" /> 24/7 Security</div>
-                <div className="flex items-center gap-3 text-gray-700"><Car className="w-5 h-5 text-gray-400" /> Parking</div>
-                <div className="flex items-center gap-3 text-gray-700"><ArrowUpDown className="w-5 h-5 text-gray-400" /> Lift</div>
-                <div className="flex items-center gap-3 text-gray-700"><Dog className="w-5 h-5 text-gray-400" /> Pet Friendly</div>
-              </div>
-            </div>
-
-            {/* LOCATION & RULES */}
-            <div className="pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Location */}
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Location</h3>
-                <p className="text-gray-500 mb-4">{property.location || "Koramangala 4th Block, Bangalore, Karnataka 560034"}</p>
-                <div className="h-40 bg-gray-200 rounded-xl mb-4 overflow-hidden relative">
-                   {/* Placeholder for map image */}
-                   <img src="/api/placeholder/400/200" alt="Map" className="w-full h-full object-cover opacity-70" />
-                   <div className="absolute inset-0 flex items-center justify-center">
-                      <MapPin className="w-8 h-8 text-indigo-600 fill-indigo-100" />
-                   </div>
-                </div>
-                <button className="w-full py-2.5 border border-gray-300 rounded-lg text-indigo-600 font-medium hover:bg-gray-50 transition">
-                  View on Maps
-                </button>
-              </div>
-
-              {/* House Rules */}
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-6">House Rules</h3>
-                <div className="flex flex-col gap-4 text-gray-700">
-                  <div className="flex items-center gap-3"><CalendarDays className="w-5 h-5 text-gray-400" /> Check-in after 12:00 PM</div>
-                  <div className="flex items-center gap-3"><CalendarDays className="w-5 h-5 text-gray-400" /> Checkout before 11:00 AM</div>
-                  <div className="flex items-center gap-3"><Wind className="w-5 h-5 text-gray-400" /> No smoking</div>
-                  <div className="flex items-center gap-3"><Sofa className="w-5 h-5 text-gray-400" /> No parties or events</div>
-                  <div className="flex items-center gap-3"><Dog className="w-5 h-5 text-gray-400" /> Pets allowed</div>
-                </div>
-                <button className="text-indigo-600 font-medium mt-4 hover:underline flex items-center gap-1">
-                  View all rules <ChevronDown className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN (SIDEBAR) */}
-          <div>
-            <div className="sticky top-6 flex flex-col gap-6">
+            {/* CONTENT SECTIONS */}
+            <div className="flex flex-col gap-8 text-slate-700">
               
-              {/* PRICING & BOOKING CARD */}
-              <div className="border border-gray-200 p-6 rounded-2xl shadow-sm bg-white">
-                <div className="flex items-end gap-1 mb-4">
-                  <h2 className="text-3xl font-bold text-indigo-600">₹{property.rent || "22,000"}</h2>
-                  <span className="text-gray-500 mb-1">/ month</span>
-                </div>
-                
-                <h1 className="text-xl font-bold text-gray-900 mb-2">{property.title || "Modern 2BHK Apartment"}</h1>
-                <div className="flex items-center gap-1 text-gray-500 mb-4 text-sm">
-                  <MapPin className="w-4 h-4" /> {property.location || "Koramangala, Bangalore"}
-                </div>
-                
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-bold">{property.averageRating || "4.7"}</span>
-                    <span className="text-gray-500 text-sm">({reviewsData?.reviews?.length || 128} Reviews)</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded text-xs font-medium">
-                    <ShieldCheck className="w-3 h-3" /> Verified
-                  </div>
-                </div>
+              {/* Quick Stats */}
+              <div className="pb-6 border-b border-slate-200 flex flex-wrap gap-x-6 gap-y-2 text-[15px]">
+                <span>{property.bedrooms || 0} guests</span>
+                <span className="text-slate-300">•</span>
+                <span>{property.bedrooms || 0} bedrooms</span>
+                <span className="text-slate-300">•</span>
+                <span>{property.bathrooms || 0} baths</span>
+                <span className="text-slate-300">•</span>
+                <span>{property.area || 0} sqft</span>
+              </div>
 
-                <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-3">Check Availability</h3>
-                  <div className="border border-gray-300 rounded-xl overflow-hidden mb-3">
-                    <div className="flex border-b border-gray-300">
-                      <div className="flex-1 p-3 border-r border-gray-300">
-                        <label className="block text-xs font-bold text-gray-900 mb-1">Move In</label>
-                        <input type="date" className="w-full outline-none text-sm text-gray-600 bg-transparent" />
-                      </div>
-                      <div className="flex-1 p-3">
-                        <label className="block text-xs font-bold text-gray-900 mb-1">Move Out</label>
-                        <input type="date" className="w-full outline-none text-sm text-gray-600 bg-transparent" />
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <label className="block text-xs font-bold text-gray-900 mb-1">Guests</label>
-                      <select className="w-full outline-none text-sm text-gray-600 bg-transparent cursor-pointer">
-                        <option>1 Guest</option>
-                        <option>2 Guests</option>
-                        <option>3 Guests</option>
-                        <option>4+ Guests</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
+              {/* Host Info Summary */}
+              <div className="flex items-center gap-4 pb-6 border-b border-slate-200">
+                 <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-lg uppercase shrink-0">
+                    {property.owner?.name?.charAt(0) || "H"}
+                 </div>
+                 <div>
+                    <h3 className="font-semibold text-slate-900 text-base">Hosted by {property.owner?.name || "Verified Host"}</h3>
+                    <p className="text-sm text-slate-500">Superhost • 4 years hosting</p>
+                 </div>
+              </div>
 
-                <button 
-                  onClick={() => bookingMutation.mutate()}
-                  disabled={bookingMutation.isPending}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl transition mb-3"
-                >
-                  {bookingMutation.isPending ? "Processing..." : "Request Booking"}
-                </button>
-                <button className="w-full bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-semibold py-3.5 rounded-xl transition mb-4">
-                  Contact Owner
-                </button>
-                <p className="text-center text-gray-500 text-sm flex items-center justify-center gap-1">
-                  <CalendarDays className="w-4 h-4" /> Response time: Within a few hours
+              {/* Description */}
+              <div className="pb-8 border-b border-slate-200">
+                <p className="text-[15px] leading-relaxed whitespace-pre-line font-light">
+                  {property.description || "No description provided by the host."}
                 </p>
               </div>
 
-              {/* HOST INFO */}
-              <div className="border border-gray-200 p-6 rounded-2xl shadow-sm bg-white">
-                <div className="flex items-center gap-4 mb-4">
-                  <img 
-                    src={property.owner?.avatar || "/api/placeholder/50/50"} 
-                    alt="Host" 
-                    className="w-14 h-14 rounded-full object-cover bg-gray-200"
-                  />
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">Hosted by</p>
-                    <h3 className="font-bold text-gray-900">{property.owner?.name || "Arjun Mehta"}</h3>
-                    <p className="text-xs text-gray-500">Joined in Jan 2022</p>
-                    <div className="flex items-center gap-1 mt-1 text-sm">
-                      <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                      <span className="font-bold text-gray-700">4.8</span>
-                      <span className="text-gray-500">(56 Reviews)</span>
-                    </div>
-                  </div>
+              {/* Amenities List */}
+              <div className="pb-8 border-b border-slate-200">
+                <h2 className="text-lg font-semibold text-slate-900 mb-5">What this place offers</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-[15px] font-light">
+                  <div className="flex items-center gap-4"><Wind className="w-6 h-6 stroke-[1.5] text-slate-600" /> Fast WiFi & AC</div>
+                  <div className="flex items-center gap-4"><Car className="w-6 h-6 stroke-[1.5] text-slate-600" /> Free parking on premises</div>
+                  <div className="flex items-center gap-4"><CheckCircle2 className="w-6 h-6 stroke-[1.5] text-slate-600" /> Power Backup</div>
+                  <div className="flex items-center gap-4"><ShieldCheck className="w-6 h-6 stroke-[1.5] text-slate-600" /> 24/7 Security</div>
                 </div>
-                <button className="w-full py-2 border border-gray-300 rounded-lg text-indigo-600 font-medium hover:bg-gray-50 transition">
-                  View Profile
-                </button>
               </div>
 
-              {/* WHY BOOK THIS PROPERTY */}
-              <div className="border border-gray-200 p-6 rounded-2xl shadow-sm bg-gray-50">
-                <h3 className="font-bold text-gray-900 mb-4">Why book this property?</h3>
-                <div className="flex flex-col gap-3 text-sm text-gray-700">
-                  <div className="flex gap-2 items-start">
-                    <CheckCircle2 className="w-5 h-5 text-indigo-600 shrink-0" />
-                    <p>Great location with easy access to IT parks, cafes & metro</p>
+              {/* REVIEWS SECTION */}
+              <div className="pt-2">
+                <div className="flex items-center gap-2 mb-6">
+                  <Star className="w-5 h-5 fill-slate-900 text-slate-900" />
+                  <h2 className="text-xl font-semibold text-slate-900">{property.averageRating || "No ratings"} • {reviews.length} reviews</h2>
+                </div>
+
+                {/* List of Reviews (Shows up to 4) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-8 mb-10">
+                  {reviews.slice(0, 4).map((review, i) => (
+                    <div key={i} className="flex flex-col gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-semibold text-slate-600 text-sm">
+                          {review.user?.name?.charAt(0) || "U"}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm text-slate-900">{review.user?.name || "Anonymous User"}</h4>
+                          <span className="text-xs text-slate-500">October 2025</span>
+                        </div>
+                      </div>
+                      <p className="text-[14px] text-slate-700 leading-relaxed font-light line-clamp-3">
+                        "{review.comment}"
+                      </p>
+                    </div>
+                  ))}
+                  {reviews.length === 0 && <p className="text-sm text-slate-500 italic">No reviews yet. Be the first!</p>}
+                </div>
+
+                {/* Add Review Form */}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 mt-4">
+                  <h3 className="font-semibold text-slate-900 mb-4 text-sm flex items-center gap-2">
+                     <MessageSquare className="w-4 h-4" /> Write a Review
+                  </h3>
+                  <div className="flex items-center gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star 
+                        key={star} 
+                        onClick={() => setRating(star)}
+                        className={`w-5 h-5 cursor-pointer transition-colors ${rating >= star ? "fill-slate-900 text-slate-900" : "text-slate-300"}`} 
+                      />
+                    ))}
                   </div>
-                  <div className="flex gap-2 items-start">
-                    <CheckCircle2 className="w-5 h-5 text-indigo-600 shrink-0" />
-                    <p>Fully furnished with modern amenities</p>
-                  </div>
-                  <div className="flex gap-2 items-start">
-                    <CheckCircle2 className="w-5 h-5 text-indigo-600 shrink-0" />
-                    <p>Safe & secure locality</p>
-                  </div>
-                  <div className="flex gap-2 items-start">
-                    <CheckCircle2 className="w-5 h-5 text-indigo-600 shrink-0" />
-                    <p>Trusted by 100+ tenants</p>
-                  </div>
+                  <textarea 
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="How was your stay?"
+                    className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:border-slate-400 bg-white resize-none mb-3 text-sm"
+                    rows="2"
+                  ></textarea>
+                  <button 
+                    onClick={() => reviewMutation.mutate({ rating, comment })}
+                    disabled={reviewMutation.isPending || !comment.trim()}
+                    className="bg-slate-900 hover:bg-black text-white text-sm font-semibold py-2 px-5 rounded-lg transition disabled:opacity-50"
+                  >
+                    {reviewMutation.isPending ? "Submitting..." : "Post Review"}
+                  </button>
                 </div>
               </div>
 
             </div>
           </div>
 
+          {/* ================= RIGHT COLUMN (Sticky Booking Card) ================= */}
+          <div className="w-full lg:w-[350px] shrink-0  lg:block relative">
+            
+            <div className="sticky top-28 bg-white border border-slate-200 p-6 rounded-2xl shadow-[0_6px_16px_rgb(0,0,0,0.08)]">
+              
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-[22px] font-semibold text-slate-900">₹{property.rent}</span>
+                <span className="text-slate-500 text-[15px]"> month</span>
+              </div>
+              
+              {/* Form Inputs (Compact) */}
+              <div className="border border-slate-300 rounded-lg overflow-hidden mb-4 bg-white">
+                <div className="flex border-b border-slate-300">
+                  <div className="flex-1 p-2.5 border-r border-slate-300">
+                    <label className="block text-[9px] font-bold uppercase text-slate-800 mb-0.5">Check-In</label>
+                    <input type="date" className="w-full outline-none text-[13px] text-slate-700 bg-transparent cursor-pointer" />
+                  </div>
+                  <div className="flex-1 p-2.5">
+                    <label className="block text-[9px] font-bold uppercase text-slate-800 mb-0.5">Checkout</label>
+                    <input type="date" className="w-full outline-none text-[13px] text-slate-700 bg-transparent cursor-pointer" />
+                  </div>
+                </div>
+                <div className="p-2.5">
+                  <label className="block text-[9px] font-bold uppercase text-slate-800 mb-0.5">Guests</label>
+                  <select className="w-full outline-none text-[13px] text-slate-700 bg-transparent cursor-pointer">
+                    <option>1 guest</option>
+                    <option>2 guests</option>
+                    <option>3 guests</option>
+                  </select>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => bookingMutation.mutate()}
+                disabled={bookingMutation.isPending}
+                className="w-full bg-[#E51D53] hover:bg-[#D91B4E] text-white font-semibold py-3.5 rounded-lg transition-all mb-3 text-[15px]"
+              >
+                {bookingMutation.isPending ? "Processing..." : "Reserve"}
+              </button>
+              
+              <p className="text-center text-slate-500 text-[13px] mb-4">
+                You won't be charged yet
+              </p>
+
+            </div>
+          </div>
+          
         </div>
 
-        {/* NEARBY PROPERTIES (Horizantal Scroll from Image) */}
-        {property.city && <NearbyProperties city={property.city} />}
       </div>
     </div>
   );
