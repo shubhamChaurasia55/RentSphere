@@ -1,119 +1,66 @@
-import { useQuery } from "@tanstack/react-query";
+import React from "react";
 
-import { useSearchParams } from 'react-router-dom'
-
-import { getProperties } from "../services/property.service";
-
-import PropertyGrid from "../components/property/PropertyGrid";
-import SearchBar from "../components/search/SearchBar";
-import FilterSidebar from "../components/search/FilterSidebar";
-
-
+// Components
 import Hero from "../components/common/HeroSection";
-import PropertySearchBar from "../components/common/PropertySearchBar";
+import PropertyCarousel from "../components/home/PropertyCarousel";
 
 const Home = () => {
-
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const queryParams = Object.fromEntries(
-
-    [...searchParams]
-
-  );
-
-
-  const {
-
-    data,
-
-    isLoading,
-
-    error
-
-  } = useQuery({
-
-    queryKey: ["properties", queryParams],
-
-    queryFn: () => getProperties(queryParams)
-
-  });
-
-  if (isLoading) {
-
-    return (
-
-      <div className="p-10">
-
-        Loading properties...
-
-      </div>
-
-    );
-
-  }
-
-  if (error) {
-
-    return (
-
-      <div className="p-10">
-
-        Failed to load properties
-
-      </div>
-
-    );
-
-  }
-
-  if (!data?.properties?.length) {
-
-    return (
-
-      <div className="p-10">
-
-        No properties found
-
-      </div>
-
-    );
-
-  }
-
   return (
-    <>
-    <Hero />
-    <PropertySearchBar />
+    <div className="min-h-screen bg-white pb-20">
 
-    <div className="max-w-7xl mx-auto px-4 py-10">
+      {/* HERO */}
+      <Hero />
 
-      <div className="grid grid-cols-12 gap-8">
+      {/* MAIN CONTENT */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-10">
 
-        <div className="col-span-3">
+        <div className="flex flex-col gap-10">
 
-          <FilterSidebar />
+          <PropertyCarousel
+            title="Top Rated Apartments"
+            filters={{
+              category: "Apartments",
+              sort: "-averageRating",
+            }}
+            viewAllLink="/properties?category=Apartments"
+          />
 
-        </div>
+          <PropertyCarousel
+            title="Luxurious Villas"
+            filters={{
+              category: "Villas",
+            }}
+            viewAllLink="/properties?category=Villas"
+          />
 
-        <div className="col-span-9 flex flex-col gap-6">
+          <PropertyCarousel
+            title="Beachfront Escapes"
+            filters={{
+              category: "Beachfront",
+            }}
+            viewAllLink="/properties?category=Beachfront"
+          />
 
-          <SearchBar />
+          <PropertyCarousel
+            title="Cozy Homes & Cabins"
+            filters={{
+              category: "Houses",
+            }}
+            viewAllLink="/properties?category=Houses"
+          />
 
-          <PropertyGrid
-            properties={data?.properties || []}
+          <PropertyCarousel
+            title="Newest Listings"
+            filters={{
+              sort: "-createdAt",
+            }}
+            viewAllLink="/properties"
           />
 
         </div>
-
       </div>
-
-
     </div>
-    </>
-
   );
-
 };
 
 export default Home;
