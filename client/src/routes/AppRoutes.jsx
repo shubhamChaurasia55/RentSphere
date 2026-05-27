@@ -1,44 +1,46 @@
 import { Routes, Route } from 'react-router-dom'
 
 import PublicRoute from '../features/auth/PublicRoute'
+import ProtectedRoute from '../features/auth/ProtectedRoute'
 
 import MainLayout from '../layouts/MainLayout'
 import DashboardLayout from '../layouts/DashboardLayout'
+import TenantLayout from "../layouts/TenantLayout";
 
-import LandlordDashboard from '../pages/landlord/Dashboard'
-import TenantDashboard from '../pages/tenant/Dashboard'
-
+// --- PUBLIC PAGES ---
 import Home from '../pages/Home'
+import Properties from '../pages/Properties' // <-- NEW IMPORT
+import PropertyDetails from '../pages/PropertyDetails'
 import Login from '../pages/Login'
 import Register from '../pages/Register'
 import NotFound from '../pages/NotFound'
-import ProtectedRoute from '../features/auth/ProtectedRoute'
-import PropertyDetails from '../pages/PropertyDetails'
 
+// --- LANDLORD PAGES ---
+import LandlordDashboard from '../pages/landlord/Dashboard'
 import MyProperties from "../pages/landlord/MyProperties";
 import AddProperty from "../pages/landlord/AddProperty";
 import EditProperty from "../pages/landlord/EditProperty";
 import BookingRequests from "../pages/landlord/BookingRequests";
 
-import TenantLayout from "../layouts/TenantLayout";
-
+// --- TENANT PAGES ---
+import TenantDashboard from '../pages/tenant/Dashboard'
 import MyBookings from "../pages/tenant/MyBookings";
-
 import Favorites from "../pages/tenant/Favorites";
-
 import Notifications from "../pages/Notifications";
 
 export const AppRoutes = () => {
     return (
         <Routes>
 
-            {/* public routes */}
-            <Route element={<MainLayout />} >
+            {/* =======================================
+                PUBLIC ROUTES (Uses Main Navbar/Footer)
+                ======================================= */}
+            <Route element={<MainLayout />}>
 
-                <Route
-                    path='/'
-                    element={<Home />}
-                />
+                <Route path='/' element={<Home />} />
+                
+                {/* <-- NEW PROPERTIES ROUTE HERE --> */}
+                <Route path='/properties' element={<Properties />} />
 
                 <Route
                     path='/login'
@@ -63,12 +65,11 @@ export const AppRoutes = () => {
                     element={<PropertyDetails />}
                 />
 
+                {/* Favorites requires a logged-in Tenant, but still uses MainLayout */}
                 <Route
                     path="/favorites"
                     element={
-                        <ProtectedRoute
-                            allowedRoles={["tenant"]}
-                        >
+                        <ProtectedRoute allowedRoles={["tenant"]}>
                             <Favorites />
                         </ProtectedRoute>
                     }
@@ -76,98 +77,43 @@ export const AppRoutes = () => {
 
             </Route>
 
-
-
-            {/* protected routes */}
+            {/* =======================================
+                LANDLORD PROTECTED ROUTES
+                ======================================= */}
             <Route
-
                 path="/landlord"
-
                 element={
-
-                    <ProtectedRoute
-                        allowedRoles={["landlord"]}
-                    >
-
+                    <ProtectedRoute allowedRoles={["landlord"]}>
                         <DashboardLayout />
-
                     </ProtectedRoute>
-
                 }
-
             >
-
-                <Route
-                    path="dashboard"
-                    element={<LandlordDashboard />}
-                />
-
-                <Route
-                    path="properties"
-                    element={<MyProperties />}
-                />
-
-                <Route
-                    path="add-property"
-                    element={<AddProperty />}
-                />
-
-                <Route
-                    path="edit-property/:id"
-                    element={<EditProperty />}
-                />
-                <Route
-
-                    path="booking-requests"
-
-                    element={<BookingRequests />}
-
-                />
-
+                <Route path="dashboard" element={<LandlordDashboard />} />
+                <Route path="properties" element={<MyProperties />} />
+                <Route path="add-property" element={<AddProperty />} />
+                <Route path="edit-property/:id" element={<EditProperty />} />
+                <Route path="booking-requests" element={<BookingRequests />} />
             </Route>
 
+            {/* =======================================
+                TENANT PROTECTED ROUTES
+                ======================================= */}
             <Route
-
                 path="/tenant"
-
                 element={
-
-                    <ProtectedRoute
-                        allowedRoles={["tenant"]}
-                    >
-
+                    <ProtectedRoute allowedRoles={["tenant"]}>
                         <TenantLayout />
-
                     </ProtectedRoute>
-
                 }
-
             >
-
-                <Route
-
-                    path="dashboard"
-
-                    element={<TenantDashboard />}
-
-                />
-
-                <Route
-
-                    path="bookings"
-
-                    element={<MyBookings />}
-
-                />
-
-                <Route
-                    path="notifications"
-                    element={<Notifications />}
-                />
-
+                <Route path="dashboard" element={<TenantDashboard />} />
+                <Route path="bookings" element={<MyBookings />} />
+                <Route path="notifications" element={<Notifications />} />
             </Route>
 
-            {/* not found route */}
+            {/* =======================================
+                CATCH-ALL ROUTE (404 Not Found)
+                ======================================= */}
             <Route path='*' element={<NotFound />} />
 
         </Routes>
